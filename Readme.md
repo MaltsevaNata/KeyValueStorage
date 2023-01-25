@@ -11,4 +11,5 @@ Expired items are deleted every `DeleteExpiredItemsPeriodMs` (500 ms by default)
 ## Local run
 
 Example of storage usage is shown in ./cmd/app/main.py
+
 ```go run ./cmd/app```
