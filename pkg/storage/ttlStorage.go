@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"KeyValueStorage/internal/config"
 	"KeyValueStorage/internal/ttlQueue"
 	"KeyValueStorage/internal/utils"
 	"container/heap"
@@ -20,7 +21,7 @@ func New() (storage *TTLStorage) {
 	heap.Init(&tq)
 	storage = &TTLStorage{storage: make(map[string]string), ttlQueue: tq}
 	go func() {
-		for range time.Tick(time.Millisecond * 500) {
+		for range time.Tick(time.Millisecond * config.DeleteExpiredItemsPeriodMs) {
 			storage.removeExpired()
 		}
 	}()
