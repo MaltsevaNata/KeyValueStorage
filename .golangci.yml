@@ -1,0 +1,27 @@
+# Config file reference: https://golangci-lint.run/usage/configuration/#config-file
+# Linters list: https://golangci-lint.run/usage/linters
+
+run:
+  timeout: 5m
+  modules-download-mode: readonly
+  skip-dirs:
+    - charts
+    - config
+
+linters:
+  enable:
+    - gofumpt
+    - revive
+    - gocritic
+    - govet
+    - staticcheck
+    - errname
+    - unused
+linters-settings:
+  govet:
+    disable:
+      - composites
+
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
