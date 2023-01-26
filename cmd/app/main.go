@@ -68,4 +68,9 @@ func main() {
 	} else {
 		log.Fatalf("Error: Deleting didn't work")
 	}
+
+	log.Print("Remaining values in storage: ")
+	for key, val := range kvStorage.GetAllItems() {
+		log.Printf("{key: `%s`, value: `%s`}\n", key, val)
+	}
 }
