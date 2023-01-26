@@ -13,7 +13,7 @@ import (
 type TTLStorage struct {
 	storage  map[string]string
 	ttlQueue ttlQueue.TTLQueue
-	lock     sync.Mutex
+	lock     sync.RWMutex
 }
 
 func New() (storage *TTLStorage) {
