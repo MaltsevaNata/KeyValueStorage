@@ -85,3 +85,7 @@ func (storage *TTLStorage) Delete(key string) (err error) {
 	storage.lock.Unlock()
 	return err
 }
+
+func (storage *TTLStorage) GetAllItems() map[string]string {
+	return storage.storage
+}
