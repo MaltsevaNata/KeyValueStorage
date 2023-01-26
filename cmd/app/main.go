@@ -8,64 +8,63 @@ import (
 
 func main() {
 	kvStorage := storage.New()
+	items := map[string]string{"foo": "111", "bar": "222", "fdrkj": "333", "rtrn": "444", "ufecs": "555"}
+	ttl := 2
+	itemTTL := map[string]*int{"foo": &ttl, "bar": nil, "fdrkj": &ttl, "rtrn": nil, "ufecs": nil}
 
 	// set value
-	ttl := 2
-	firstKey := "foo"
-	firstVal := "bar"
-	err := kvStorage.Set(firstKey, firstVal, &ttl)
-	if err != nil {
-		log.Fatalf(err.Error())
+	for key, val := range items {
+		err := kvStorage.Set(key, val, itemTTL[key])
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		if itemTTL[key] != nil {
+			log.Printf("Set {key: `%s`, value: `%s`} with TTL %d seconds\n", key, val, *itemTTL[key])
+		} else {
+			log.Printf("Set {key: `%s`, value: `%s`} with no TTL\n", key, val)
+		}
 	}
-	log.Printf("Set {key: `%s`, value: `%s`} with TTL %d seconds\n", firstKey, firstVal, ttl)
-	err = nil
 
 	// get value
-	val, err := kvStorage.Get(firstKey)
+	val, err := kvStorage.Get("foo")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-	log.Printf("Got {key: `%s`, value: `%s`}", firstKey, val)
+	log.Printf("Got {key: `%s`, value: `%s`}", "foo", val)
 	err = nil
 
 	// check deleting by TTL
 	log.Println("Waiting for TTL to expire...")
-	time.Sleep(3 * time.Second) // wait 1 sec more to let item be removed
-	_, err = kvStorage.Get(firstKey)
-	if err != nil {
-		log.Printf("First value was deleted by TTL: %s \n", err)
+	time.Sleep(3 * time.Second) // wait 1 sec more to let items with TTL be removed
+
+	_, err1 := kvStorage.Get("foo")
+	_, err2 := kvStorage.Get("fdrkj")
+	if err1 != nil && err2 != nil {
+		log.Println("Values were deleted by TTL")
 	} else {
 		log.Fatalf("Error: TTL didn't work")
 	}
-	err = nil
 
-	// set new value
-	secondKey := "abcde123"
-	secondVal := "87443643209"
-	err = kvStorage.Set(secondKey, secondVal, nil)
+	// get value without ttl
+	val, err = kvStorage.Get("bar")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-	log.Printf("Set {key: `%s`, value: `%s`} with no TTL", secondKey, secondVal)
-	val, err = kvStorage.Get(secondKey)
-	if err != nil {
-		log.Fatalf(err.Error())
-	}
-	log.Printf("Got {key: `%s`, value: `%s`}", secondKey, val)
+	log.Printf("Got {key: `%s`, value: `%s`}", "bar", val)
 	err = nil
 
 	// delete value
-	err = kvStorage.Delete(secondKey)
+	err = kvStorage.Delete("bar")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
-	log.Printf("Deleted value by {key: `%s`}", secondKey)
+	log.Printf("Deleted value by {key: `%s`}", "bar")
 	err = nil
 
 	// check deleted
-	_, err = kvStorage.Get(secondKey)
+	_, err = kvStorage.Get("bar")
 	if err != nil {
-		log.Printf("Second value was deleted by user request: %s \n", err)
+		log.Printf("Value was deleted by user request: %s \n", err)
 	} else {
 		log.Fatalf("Error: Deleting didn't work")
 	}
