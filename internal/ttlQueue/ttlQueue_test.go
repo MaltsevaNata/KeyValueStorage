@@ -7,17 +7,25 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	val1 = int64(1)
+	val2 = int64(2)
+	val3 = int64(3)
+	val4 = int64(4)
+	val5 = int64(5)
+)
+
+var items = map[string]*int64{"0": nil, "5": &val5, "2": &val2, "4": &val4, "3": &val3, "1": &val1}
+
 func TestPushToQueue(t *testing.T) {
-	items := map[string]int{"5": 5, "2": 2, "4": 4, "3": 3, "1": 1}
 	tq := TTLQueue{}
 	heap.Init(&tq)
 	for key, val := range items {
-		ts := int64(val)
-		item := Item{Value: key, ExpirationTimestamp: &ts}
+		item := Item{Value: key, ExpirationTimestamp: val}
 		heap.Push(&tq, &item)
 	}
 	// Take the items out; they arrive in increasing ts order.
-	expectedItems := []string{"1", "2", "3", "4", "5"}
+	expectedItems := []string{"1", "2", "3", "4", "5", "0"}
 	var gotItems []string
 	for tq.Len() > 0 {
 		item := heap.Pop(&tq).(*Item)
@@ -27,12 +35,10 @@ func TestPushToQueue(t *testing.T) {
 }
 
 func TestPopFromQueue(t *testing.T) {
-	items := map[string]int{"5": 5, "2": 2, "4": 4, "3": 3, "1": 1}
 	tq := TTLQueue{}
 	heap.Init(&tq)
 	for key, val := range items {
-		ts := int64(val)
-		item := Item{Value: key, ExpirationTimestamp: &ts}
+		item := Item{Value: key, ExpirationTimestamp: val}
 		heap.Push(&tq, &item)
 	}
 	ts := int64(1)
@@ -40,7 +46,7 @@ func TestPopFromQueue(t *testing.T) {
 	item := heap.Pop(&tq).(*Item)
 	assert.Equal(t, *item, expectedItem)
 
-	expectedItems := []string{"2", "3", "4", "5"}
+	expectedItems := []string{"2", "3", "4", "5", "0"}
 	var gotItems []string
 	for tq.Len() > 0 {
 		item := heap.Pop(&tq).(*Item)
@@ -50,19 +56,17 @@ func TestPopFromQueue(t *testing.T) {
 }
 
 func TestDeleteFromQueue(t *testing.T) {
-	items := map[string]int{"5": 5, "2": 2, "4": 4, "3": 3, "1": 1}
 	tq := TTLQueue{}
 	heap.Init(&tq)
 	for key, val := range items {
-		ts := int64(val)
-		item := Item{Value: key, ExpirationTimestamp: &ts}
+		item := Item{Value: key, ExpirationTimestamp: val}
 		heap.Push(&tq, &item)
 	}
 
 	err := tq.Delete("3")
 	assert.Equal(t, err, nil)
 
-	expectedItems := []string{"1", "2", "4", "5"}
+	expectedItems := []string{"1", "2", "4", "5", "0"}
 	var gotItems []string
 	for tq.Len() > 0 {
 		item := heap.Pop(&tq).(*Item)
@@ -72,12 +76,10 @@ func TestDeleteFromQueue(t *testing.T) {
 }
 
 func TestUpdateQueue(t *testing.T) {
-	items := map[string]int{"5": 5, "2": 2, "4": 4, "3": 3, "1": 1}
 	tq := TTLQueue{}
 	heap.Init(&tq)
 	for key, val := range items {
-		ts := int64(val)
-		item := Item{Value: key, ExpirationTimestamp: &ts}
+		item := Item{Value: key, ExpirationTimestamp: val}
 		heap.Push(&tq, &item)
 	}
 
@@ -85,7 +87,11 @@ func TestUpdateQueue(t *testing.T) {
 	err := tq.Update("3", &newTTL)
 	assert.Equal(t, err, nil)
 
-	expectedItems := []string{"1", "2", "4", "5", "3"}
+	itemChanged, err := tq.find("3")
+	assert.Equal(t, err, nil)
+	assert.Equal(t, itemChanged.ExpirationTimestamp, &newTTL)
+
+	expectedItems := []string{"1", "2", "4", "5", "3", "0"}
 	var gotItems []string
 	var item *Item
 	for tq.Len() > 0 {
@@ -93,5 +99,4 @@ func TestUpdateQueue(t *testing.T) {
 		gotItems = append(gotItems, item.Value)
 	}
 	assert.Equal(t, gotItems, expectedItems)
-	assert.Equal(t, item.ExpirationTimestamp, &newTTL)
 }

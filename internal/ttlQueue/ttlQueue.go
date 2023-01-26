@@ -28,10 +28,10 @@ func (tq TTLQueue) Peek() *Item { // get top element of ttlQueue
 func (tq TTLQueue) Less(i, j int) bool {
 	// on top of heap should be item with the lowest (closest to Now) exp timestamp
 	if tq[i].ExpirationTimestamp == nil {
-		return true
+		return false
 	}
 	if tq[j].ExpirationTimestamp == nil {
-		return false
+		return true
 	}
 	return *tq[i].ExpirationTimestamp < *tq[j].ExpirationTimestamp
 }
